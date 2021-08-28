@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-unsigned int getKeyValue(std::string key);
+unsigned int getKeyValue(char key);
 
 
 

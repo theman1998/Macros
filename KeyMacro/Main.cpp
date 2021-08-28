@@ -7,19 +7,24 @@
 
 #define WINVER 0x0500
 #include "KeysDefine.h"
+#include "KeyboardManager.h"
 
 
 //0=keydown   1=keyup
 INPUT ipE[2];
 INPUT ipWindows[2];
 INPUT ipM[2];
-
+KeyboardManagaer km;
 // can save 5 keys
 INPUT ipSpace[10];
 
+char exitKey = 'p';
+char switchKey = 'l';
+
+
 // prototypes
 void init(), SpamE(), spamMouseE(), windowsP(), freeMode(), watchKey();
-
+void qAsTrigger();
 
 
 int main()
@@ -35,34 +40,37 @@ int main()
     std::cout << "1 2 3 macro program!" << std::endl;
     std::cout << "Features are coming, first we can used a pre define tempplate, or we can set the pattern and keys we want (not created yet)." << std::endl;
     std::cout << "commands: " << std::endl;
-    std::cout << "spam E:           1" << std::endl;
-    std::cout << "spam E and mouse: 2" << std::endl;
-    std::cout << "unluck free mode: 3" << std::endl;
-    std::cout << "exit:             0" << std::endl;
+    std::cout << "(k)unlock free mode: 3" << std::endl;
+    std::cout << "("<< switchKey <<") to switch auto left click" << std::endl;
+    std::cout << "("<< exitKey << ") exit program" << std::endl;
 
 
     while (1) 
     {
-        std::string userInput = " ";
-        std::cin >> userInput;
-        
+        //std::string userInput = " ";
+        //std::cin >> userInput;
+        Sleep(1000);
 
-        if (userInput == "1")
-        {
-            SpamE();
-        }
-        else if (userInput == "2")
-        {
-            spamMouseE();
-        }
+        //if (GetAsyncKeyState(getKeyValue(switchKey))
+        //{
+        //    SpamE();
+        //}
+        //else if (GetAsyncKeyState(getKeyValue(switchKey))
+        //{
+        //    spamMouseE();
+        //}
 
-        else if (userInput == "3")
+        if (GetAsyncKeyState( getKeyValue( 'k' )))
         {
-        freeMode();
+            freeMode();
+        }
+        else if ( GetAsyncKeyState( getKeyValue(switchKey)))
+        {
+            qAsTrigger();
         }
 
         //exit and leave
-        if (userInput == "0" || userInput == "~" || GetAsyncKeyState(VK_ESCAPE))
+        if (GetAsyncKeyState( getKeyValue(exitKey)))
         {
             break;
         }
@@ -76,14 +84,72 @@ int main()
 //option witch will allow us to set out keys and create patterns
 void freeMode()
 {
+    INPUT inputKey[2];
+    std::string inKey;
+    int loopCounter = 0;
+    int speedMS = 10;
+
+
     std::cout << "We are in free mode! lets set up some keys" << std::endl;
-    
+    std::cout << "what key would you like spam?";
+    std::cin >> inKey;
+    std::cout << "how many times would you like it clicked?" << std::endl;
+    std::cin >> loopCounter;
+    std::cout << "time between each click (in milliseconds)?" << std::endl;
+    std::cin >> speedMS;
+
+    km.spamLetter(inKey, inputKey);
+    km.spam(inputKey, loopCounter, speedMS);
+
+
+    std::cout << "returning to main menu!" << std::endl;
+    //while (1)
+    //{
+    //    if (GetAsyncKeyState(VK_ESCAPE))break;
+    //    watchKey();
+    //}
+}
+
+void qAsTrigger()
+{
+    std::cout << "left click spammable: (true)" << std::endl;
+    int clickTrigger = 0;
     while (1)
     {
-        if (GetAsyncKeyState(VK_ESCAPE))break;
-        watchKey();
+        if ( GetAsyncKeyState( VK_LBUTTON) && clickTrigger == 0 )
+        {
+            Sleep(50);
+            for (int i = 0; i < 5; i++)
+            {
+                SendInput(1, &ipM[0], sizeof(INPUT));
+                Sleep(40);
+                SendInput(1, &ipM[1], sizeof(INPUT));
+                Sleep(40);
+            }
+            clickTrigger++;
+        }
+        //else if ( GetAsyncKeyState( getKeyValue( exitKey )))
+        //{
+        //    for ( int i = 0; i < 8; i++ )
+        //    {
+        //        Sleep(50);
+        //        SendInput(1, &ipM[0], sizeof(INPUT));
+        //        Sleep(50);
+        //        SendInput(1, &ipM[1], sizeof(INPUT));
+        //    }
+        //}
+        else
+        {
+            clickTrigger = 0;
+        }
+        if ( GetAsyncKeyState( getKeyValue( exitKey )) || GetAsyncKeyState(getKeyValue(switchKey))) break;
+
     }
+
+    std::cout << "left click spammable: (false)" << std::endl;
+
 }
+
 
 void init()
 {
@@ -143,13 +209,15 @@ void init()
 
 void SpamE()
 {
-    Sleep(500);
+    Sleep(1000);
     for (int i = 0; i < 300; i++)
     {
         Sleep(20);
         SendInput(1, &ipE[0], sizeof(INPUT));
         Sleep(20);
         SendInput(1, &ipE[1], sizeof(INPUT));
+        
+        Sleep(4);
 
         if (GetAsyncKeyState(VK_ESCAPE)) break;
     }
